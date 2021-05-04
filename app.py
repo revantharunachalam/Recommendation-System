@@ -5,7 +5,6 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import requests
 import json
-# import urllib.request
 import bs4 as bs
 import spacy
 
@@ -15,6 +14,7 @@ from tmdbv3api import Movie
 
 tmdb = TMDb()
 tmdb.api_key = 'd05215f55a79e472a5b0d00d1ec80d70'
+tmdb_movie = Movie()
 
 def create_similarity():
     # creating a count matrix
@@ -85,20 +85,7 @@ def home():
 def recommend():
     input_movie = request.args.get('name')
 
-    tmdb_movie = Movie()
-    result = tmdb_movie.search(input_movie.upper())
-
-    movie_id = result[0].id
-    movie_name = result[0].title
-
-    response = requests.get('https://api.themoviedb.org/3/movie/{}?api_key={}'.format(movie_id,tmdb.api_key))
-    data_json = response.json()
-    imdb_id = data_json['imdb_id']
-    poster = data_json['poster_path']
-
     response = {
-    'Sentiment': review_analysis(imdb_id),
-    'Poster': 'https://image.tmdb.org/t/p/original{}'.format(poster),
     'Requested Movie': get_response(input_movie), 
     'Recommendations': []
     }
@@ -106,6 +93,25 @@ def recommend():
     rec_movie = rcmd(input_movie)
     for movie in rec_movie:
         response['Recommendations'].append(get_response(movie)) 
+
+    return jsonify(response)
+
+@app.route("/sentiment", methods=['GET'])
+def sentiment():
+    input_movie = request.args.get('name')
+    result = tmdb_movie.search(input_movie.upper())
+
+    movie_id, movie_name = result[0].id, result[0].title
+
+    res = requests.get('https://api.themoviedb.org/3/movie/{}?api_key={}'.format(movie_id,tmdb.api_key))
+    data_json = res.json()
+    imdb_id = data_json['imdb_id']
+    poster = data_json['poster_path']
+
+    response = {
+    'Sentiment': review_analysis(imdb_id),
+    'Poster': 'https://image.tmdb.org/t/p/original{}'.format(poster),
+    }
 
     return jsonify(response)
 
