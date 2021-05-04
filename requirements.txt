@@ -12,4 +12,4 @@ pandas>=0.19
 requests>=2.25.0
 spacy>=2.3.5
 beautifulsoup4>=4.9.3
-bs4==0.0.1
+tmdbv3api>=1.7.5
